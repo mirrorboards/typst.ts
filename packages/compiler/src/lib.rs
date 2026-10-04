@@ -1,4 +1,5 @@
 pub mod builder;
+mod source_map;
 
 #[cfg(feature = "incr")]
 mod incr;
@@ -438,6 +439,11 @@ impl TypstCompileWorld {
         Ok(if diagnostics_format != 0 {
             let result = js_sys::Object::new();
             js_sys::Reflect::set(&result, &"result".into(), &v)?;
+            if fmt == 1 {
+                let locations = source_map::collect(&self.graph.snap.world, &doc);
+                let locations = js_sys::JSON::parse(&locations.to_string())?;
+                js_sys::Reflect::set(&result, &"sourceMap".into(), &locations)?;
+            }
             result.into()
         } else {
             v
